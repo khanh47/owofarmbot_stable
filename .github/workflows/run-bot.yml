@@ -1,0 +1,34 @@
+name: Run Bot
+
+on:
+    workflow_dispatch:
+
+jobs:
+    run-bot:
+        runs-on: ubuntu-latest
+        timeout-minutes: 360
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22.x"
+
+            - name: Install dependencies
+              run: npm i
+
+            - name: Create config.json from secret
+              shell: bash
+              env:
+                  CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
+              run: |
+                  if [ -z "$CONFIG_JSON" ]; then
+                      echo "CONFIG_JSON secret is not set." >&2
+                      exit 1
+                  fi
+                  printf '%s' "$CONFIG_JSON" > config.json
+
+            - name: Run bot
+              run: npm run start
